@@ -49,15 +49,15 @@ def format_title(title: str) -> (str, str):
         else:
             state = 0
     if state == 3:                      # case OP
-        return (title[:split-1], "OP 1")
+        return (title[:split-1].title(), "OP 1")
     elif state == 5:                    # case ED
-        return (title[:split-1], "ED 1")
+        return (title[:split-1].title(), "ED 1")
     if state == 7:                      # case OP/EDn
-        return (title[:split-1], (title[split:split+2] + " " + title[split+2:]).upper())
+        return (title[:split-1].title(), (title[split:split+2] + " " + title[split+2:]).upper())
     elif state == 8:                    # case OP/ED n
-        return (title[:split-1], title[split:].upper())
+        return (title[:split-1].title(), title[split:].upper())
     else:
-        return (title, "OP 1")
+        return (title.title(), "OP 1")
 
 
 def main(deck_file_path: str, deck_name: str):
@@ -79,7 +79,13 @@ def main(deck_file_path: str, deck_name: str):
         "cards": []
     }
 
+    audio_files = os.listdir("Sounds")
+
     for song in songs:
+        song = song\
+            .replace("'", "_")\
+            .replace(";", "_")\
+            .replace("/", "_")
         anime, music_type = format_title(song)
         result["cards"].append({
             "anime": anime,
@@ -87,11 +93,29 @@ def main(deck_file_path: str, deck_name: str):
             "visual": f"{song}.png",
             "audio": f"{anime} - {music_type}.mp3"
         })
-        os.rename(
-            f"Sounds/{song}.mp3".replace("'", "_"),
-            f"Sounds/{anime} - {music_type}.mp3".replace("'", "_")
-        )
-
+        try:
+            expected_old_file_name = f"Sounds/{song}.mp3"
+            new_file_name = f"Sounds/{anime} - {music_type}.mp3"
+            if new_file_name[7:] in audio_files:
+                print(f"File {expected_old_file_name} already exists ({new_file_name}), skipping")
+                continue
+            os.rename(
+                expected_old_file_name,
+                new_file_name
+            )
+        except OSError as err:
+            found = False
+            for audio_file in audio_files:
+                if expected_old_file_name.lower()[7:] == audio_file.lower():
+                    print(f"File {expected_old_file_name} not found but may be Sounds/{audio_file}, renaming")
+                    os.rename(
+                        f"Sounds/{audio_file}",
+                        new_file_name
+                    )
+                    found = True
+                    break
+            if not found:
+                print(err)
     with open(f"{deck_name}.json", "w") as target_file:
         json.dump(result, target_file)
 
