@@ -35,7 +35,7 @@ async fn get_sound(name: &str) -> Option<NamedFile> {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/api/get", routes![
+    rocket::build().mount("/get", routes![
         deck_metadata,
         deck_names,
         get_visual,
