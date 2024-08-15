@@ -80,6 +80,7 @@ def main(deck_file_path: str, deck_name: str):
     }
 
     audio_files = os.listdir("Sounds")
+    visual_files = os.listdir("Visuals")
 
     for song in songs:
         song = song\
@@ -87,35 +88,56 @@ def main(deck_file_path: str, deck_name: str):
             .replace(";", "_")\
             .replace("/", "_")
         anime, music_type = format_title(song)
+        # Add song to cards
         result["cards"].append({
             "anime": anime,
             "type": music_type,
             "visual": f"{song}.png",
             "audio": f"{anime} - {music_type}.mp3"
         })
+
+        # Rename audio files to fit standard
         try:
-            expected_old_file_name = f"Sounds/{song}.mp3"
-            new_file_name = f"Sounds/{anime} - {music_type}.mp3"
-            if new_file_name[7:] in audio_files:
-                print(f"File {expected_old_file_name} already exists ({new_file_name}), skipping")
+            expected_old_audio_file_path = f"Sounds/{song}.mp3"
+            new_audio_file_path = f"Sounds/{anime} - {music_type}.mp3"
+            if new_audio_file_path[7:] in audio_files:
+                print(f"File {expected_old_audio_file_path} already exists ({new_audio_file_path}), skipping")
                 continue
             os.rename(
-                expected_old_file_name,
-                new_file_name
+                expected_old_audio_file_path,
+                new_audio_file_path
             )
         except OSError as err:
             found = False
             for audio_file in audio_files:
-                if expected_old_file_name.lower()[7:] == audio_file.lower():
-                    print(f"File {expected_old_file_name} not found but may be Sounds/{audio_file}, renaming")
+                if expected_old_audio_file_path.lower()[7:] == audio_file.lower():
+                    print(f"File {expected_old_audio_file_path} not found but may be Sounds/{audio_file}, renaming")
                     os.rename(
                         f"Sounds/{audio_file}",
-                        new_file_name
+                        new_audio_file_path
                     )
                     found = True
                     break
             if not found:
                 print(err)
+
+        # Rename visual files if needed
+        new_visual_file_path = f"Visuals/{song}.png"
+        found = False
+        for visual_file in visual_files:
+            if new_visual_file_path.lower()[8:] == visual_file.lower():
+                print(f"File {new_visual_file_path} not found but may be Sounds/{visual_file}, renaming")
+                os.rename(
+                    f"Visuals/{visual_file}",
+                    new_visual_file_path
+                )
+                found = True
+                break
+        if not found:
+            print(f"File {new_visual_file_path} not found")
+
+
+    # Dump json into file
     with open(f"{deck_name}.json", "w") as target_file:
         json.dump(result, target_file)
 
