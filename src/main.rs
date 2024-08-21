@@ -33,6 +33,21 @@ async fn get_sound(name: &str) -> Option<NamedFile> {
     NamedFile::open(Path::new(&format!("decks/Sounds/{name}"))).await.ok()
 }
 
+#[get("/theme_names")]
+fn theme_names() -> String {
+    std::fs::read_dir("decks/Themes")
+        .unwrap()
+        .map(|rd| rd.unwrap().file_name().into_string().unwrap())
+        .filter(|filename| filename.contains(".json"))
+        .map(|s| s + "\n")
+        .collect()
+}
+
+#[get("/theme/<name>")]
+async fn get_theme(name: &str) -> Option<NamedFile> {
+    NamedFile::open(Path::new(&format!("decks/Themes/{name}"))).await.ok()
+}
+
 
 
 #[launch]
@@ -46,8 +61,10 @@ fn rocket() -> _ {
     rocket::build().mount("/", routes![
         deck_metadata,
         deck_names,
+        theme_names,
         get_visual,
         get_sound,
+        get_theme,
     ]).manage(Arc::new(decks))
 }
 
