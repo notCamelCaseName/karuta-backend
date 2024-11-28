@@ -3,6 +3,9 @@
 mod deck;
 use deck::*;
 
+mod cors;
+use cors::*;
+
 use std::{
     path::Path, sync::Arc
 };
@@ -58,7 +61,9 @@ fn rocket() -> _ {
             serde_json::from_reader(reader).unwrap()
         })
         .collect::<Vec<Deck>>();
-    rocket::build().mount("/", routes![
+    rocket::build()
+        .attach(CORS)
+        .mount("/", routes![
         deck_metadata,
         deck_names,
         theme_names,
