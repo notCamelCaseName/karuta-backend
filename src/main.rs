@@ -71,7 +71,11 @@ async fn get_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
 
 #[get("/category/<name>/icon")]
 async fn get_category_icon(name: &str, categories: &State<Arc<CategoryJSON>>) -> Option<NamedFile> {
-    let icon_path = &dbg!(categories.categories.iter().find(|category| category.name == name))?.icon;
+    let icon_path = &categories
+        .categories
+        .iter()
+        .find(|category| category.name == name)?
+    .icon;
     NamedFile::open(Path::new(&format!("decks/Categories/{icon_path}")))
         .await
         .ok()
@@ -87,7 +91,8 @@ fn rocket() -> _ {
         })
         .collect::<Vec<Deck>>();
     let categories: CategoryJSON =
-        serde_json::from_reader(std::fs::File::open("decks/Categories/Categories.json").unwrap()).unwrap();
+        serde_json::from_reader(std::fs::File::open("decks/Categories/Categories.json").unwrap())
+            .unwrap();
 
     rocket::build()
         .attach(CORS)
@@ -116,7 +121,7 @@ mod test {
     use rocket::http::Status;
     use rocket::local::blocking::Client;
 
-    use super::Deck;
+    use super::{CategoryJSON, Deck};
 
     #[test]
     fn get_decks() {
@@ -164,6 +169,21 @@ mod test {
                 let response = client.get(uri!(super::get_sound(card.audio))).dispatch();
                 assert_eq!(response.status(), Status::Ok);
             }
+        }
+    }
+
+    #[test]
+    fn category_files_integrity() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+
+        let categories: CategoryJSON = serde_json::from_reader(
+            std::fs::File::open("decks/Categories/Categories.json").unwrap(),
+        )
+        .unwrap();
+
+        for category in categories.categories {
+            let response = client.get(uri!(super::get_category_icon(category.name))).dispatch();
+            assert_eq!(response.status(), Status::Ok);
         }
     }
 }
