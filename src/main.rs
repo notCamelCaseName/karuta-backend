@@ -71,8 +71,8 @@ async fn get_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
 
 #[get("/category/<name>/icon")]
 async fn get_category_icon(name: &str, categories: &State<Arc<CategoryJSON>>) -> Option<NamedFile> {
-    let icon_path = &categories.categories.iter().find(|category| category.name == name)?.icon;
-    NamedFile::open(Path::new(&format!("decks/Category/{icon_path}")))
+    let icon_path = &dbg!(categories.categories.iter().find(|category| category.name == name))?.icon;
+    NamedFile::open(Path::new(&format!("decks/Categories/{icon_path}")))
         .await
         .ok()
 }
