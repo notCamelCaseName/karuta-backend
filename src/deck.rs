@@ -19,3 +19,15 @@ pub struct Card {
     pub visual: String,
     pub audio: String,
 }
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Category {
+    pub name: String,
+    pub icon: String,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct CategoryJSON {
+    pub categories: Vec<Category>,
+    pub types: Vec<String>,
+}
