@@ -69,13 +69,18 @@ async fn get_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
     serde_json::to_string(&categories.types).ok()
 }
 
+#[get("/get_categories_and_types")]
+async fn get_categories_and_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
+    serde_json::to_string(categories.inner().as_ref()).ok()
+}
+
 #[get("/category/<name>/icon")]
 async fn get_category_icon(name: &str, categories: &State<Arc<CategoryJSON>>) -> Option<NamedFile> {
     let icon_path = &categories
         .categories
         .iter()
         .find(|category| category.name == name)?
-    .icon;
+        .icon;
     NamedFile::open(Path::new(&format!("decks/Categories/{icon_path}")))
         .await
         .ok()
@@ -108,6 +113,7 @@ fn rocket() -> _ {
                 get_theme,
                 get_categories,
                 get_types,
+                get_categories_and_types,
                 get_category_icon,
             ],
         )
@@ -182,7 +188,9 @@ mod test {
         .unwrap();
 
         for category in categories.categories {
-            let response = client.get(uri!(super::get_category_icon(category.name))).dispatch();
+            let response = client
+                .get(uri!(super::get_category_icon(category.name)))
+                .dispatch();
             assert_eq!(response.status(), Status::Ok);
         }
     }
