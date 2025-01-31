@@ -10,12 +10,12 @@ use cors::*;
 use rocket::{fs::NamedFile, State};
 use std::{path::Path, sync::Arc};
 
-#[get("/deck_metadata/<name>")]
+#[get("/deck/metadata/<name>")]
 async fn deck_metadata(decks: &State<Arc<Vec<Deck>>>, name: &str) -> Option<String> {
     serde_json::to_string(decks.iter().find(|deck| deck.name == name)?).ok()
 }
 
-#[get("/deck_names")]
+#[get("/deck/names")]
 fn deck_names(decks: &State<Arc<Vec<Deck>>>) -> String {
     decks.iter().map(|deck| deck.name.clone() + "\n").collect()
 }
@@ -34,15 +34,14 @@ async fn get_sound(name: &str) -> Option<NamedFile> {
         .ok()
 }
 
-#[get("/cover/<name>")]
-async fn get_cover(name: &str, decks: &State<Arc<Vec<Deck>>>) -> Option<NamedFile> {
-    let cover_path = &decks.iter().find(|deck| deck.name == name)?.cover;
-    NamedFile::open(Path::new(&format!("decks/Covers/{cover_path}")))
+#[get("/deck/cover/<name>")]
+async fn get_cover(name: &str) -> Option<NamedFile> {
+    NamedFile::open(Path::new(&format!("decks/Covers/{name}")))
         .await
         .ok()
 }
 
-#[get("/theme_names")]
+#[get("/theme/names")]
 fn theme_names() -> String {
     std::fs::read_dir("decks/Themes")
         .unwrap()
@@ -59,22 +58,22 @@ async fn get_theme(name: &str) -> Option<NamedFile> {
         .ok()
 }
 
-#[get("/get_categories")]
+#[get("/categories")]
 async fn get_categories(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
     serde_json::to_string(&categories.categories).ok()
 }
 
-#[get("/get_types")]
+#[get("/types")]
 async fn get_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
     serde_json::to_string(&categories.types).ok()
 }
 
-#[get("/get_categories_and_types")]
+#[get("/categories_and_types")]
 async fn get_categories_and_types(categories: &State<Arc<CategoryJSON>>) -> Option<String> {
     serde_json::to_string(categories.inner().as_ref()).ok()
 }
 
-#[get("/category/<name>/icon")]
+#[get("/category/icon/<name>")]
 async fn get_category_icon(name: &str, categories: &State<Arc<CategoryJSON>>) -> Option<NamedFile> {
     let icon_path = &categories
         .categories
